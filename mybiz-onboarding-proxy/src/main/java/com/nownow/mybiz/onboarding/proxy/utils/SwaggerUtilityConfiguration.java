@@ -46,17 +46,15 @@ public class SwaggerUtilityConfiguration implements WebMvcConfigurer {
         Server server = new Server().url(servletContext.getContextPath());
         return new OpenAPI()
                 .info(new Info()
-                        .title("Token Management Service API")
+                        .title("Proxy Service")
                         .description("""
-                                The Token Management Service handles the generation, 
-                                validation, and expiration of OTPs and verification tokens 
-                                for authentication and password reset workflows.
+                                This service is responsible for orchestrating the communication between other services.
                                 """)
                         .version("v1.0.0")
                         .license(new License().name("Apache 2.0").url("http://springdoc.org"))
                 )
                 .externalDocs(new ExternalDocumentation()
-                        .description("Token Management Service Developer Docs")
+                        .description("proxy  Service Developer Docs")
                         .url("https://docs.nownow.com/token-management"))
                 .servers(Collections.singletonList(server));
     }

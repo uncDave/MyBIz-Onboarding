@@ -42,40 +42,44 @@ public class IdentityManagementImpl implements IdentityManagementService {
     public ResponseEntity<ApiResponse<?>> verifyBVN(BVNRequest request) {
         try {
             String url = verifyBvnServiceUrl;
-            Object response = apiClientUtil.post(
+
+            ResponseEntity<ApiResponse<Object>> response = apiClientUtil.post(
                     url,
                     request,
                     apiKey,
                     new TypeReference<ApiResponse<Object>>() {}
             );
 
-            log.info("this is the request : {}", request);
+            // SUCCESS
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return ResponseEntity.status(response.getStatusCode())
+                        .body(response.getBody());
+            }
 
-            return ResponseEntity.ok(
-                    ApiResponse.builder()
-                            .status(true)
-                            .message("BVN verification completed")
-                            .data(response)
-                            .build()
-            );
+            // FAILURE
+            return ResponseEntity.status(response.getStatusCode())
+                    .body(response.getBody());
 
         } catch (Exception e) {
-            log.error("BVN verification failed", e);
-            return ResponseEntity.internalServerError()
-                    .body(ApiResponse.builder()
-                            .status(false)
-                            .message("Verification failed")
-                            .error(e.getMessage())
-                            .build()
-                    );
+            log.error("Unexpected error during BVN verification", e);
+
+            ApiResponse<?> error = ApiResponse.builder()
+                    .status(false)
+                    .message("Verification failed")
+                    .error(e.getMessage())
+                    .build();
+
+            return ResponseEntity.internalServerError().body(error);
         }
     }
+
+
 
     @Override
     public ResponseEntity<ApiResponse<?>> verifyNIN(NINRequest request) {
         try {
             String url = verifyNinServiceUrl;
-            Object response = apiClientUtil.post(
+            ResponseEntity<ApiResponse<Object>> response  = apiClientUtil.post(
                     url,
                     request,
                     apiKey,
@@ -84,13 +88,13 @@ public class IdentityManagementImpl implements IdentityManagementService {
 
             log.info("NIN verification request: {}", request);
 
-            return ResponseEntity.ok(
-                    ApiResponse.builder()
-                            .status(true)
-                            .message("NIN verification completed")
-                            .data(response)
-                            .build()
-            );
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return ResponseEntity.status(response.getStatusCode())
+                        .body(response.getBody());
+            }
+
+            return ResponseEntity.status(response.getStatusCode())
+                    .body(response.getBody());
 
         } catch (Exception e) {
             log.error("NIN verification failed", e);
@@ -108,7 +112,7 @@ public class IdentityManagementImpl implements IdentityManagementService {
     public ResponseEntity<ApiResponse<?>> verifyTIN(TINRequest request) {
         try {
             String url = verifyTinServiceUrl;
-            Object response = apiClientUtil.post(
+            ResponseEntity<ApiResponse<Object>> response = apiClientUtil.post(
                     url,
                     request,
                     apiKey,
@@ -117,13 +121,13 @@ public class IdentityManagementImpl implements IdentityManagementService {
 
             log.info("TIN verification request: {}", request);
 
-            return ResponseEntity.ok(
-                    ApiResponse.builder()
-                            .status(true)
-                            .message("TIN verification completed")
-                            .data(response)
-                            .build()
-            );
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return ResponseEntity.status(response.getStatusCode())
+                        .body(response.getBody());
+            }
+
+            return ResponseEntity.status(response.getStatusCode())
+                    .body(response.getBody());
 
         } catch (Exception e) {
             log.error("TIN verification failed", e);

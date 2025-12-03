@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.nownow</groupId>
 	<artifactId>mybiz-onboarding-proxy</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>mybiz-onboarding-proxy</name>
 	<description>This service acts as an interface for My Biz Onboarding. It directs request to different services involved in the onboarding flow</description>
 	<url/>

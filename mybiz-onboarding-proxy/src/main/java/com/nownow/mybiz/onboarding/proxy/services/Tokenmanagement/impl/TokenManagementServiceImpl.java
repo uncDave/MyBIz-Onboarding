@@ -42,12 +42,17 @@ public class TokenManagementServiceImpl implements TokenManagementService {
                     .email(request.getEmail())
                     .build();
 
+            log.info("this is the url : {}", tokenServiceUrl);
+            log.info("this is the request : {}", request.getEmail());
+
             ResponseEntity<ApiResponse<?>> response = apiClientUtil.post(
                     tokenServiceUrl,
                     emailOTPRequest,
                     apiKey,
                     new TypeReference<ApiResponse<?>>() {}
             );
+
+            log.info("This is the response : {}", response);
 
             if (!response.getStatusCode().is2xxSuccessful()) {
                 return ResponseEntity.status(response.getStatusCode()).body(response.getBody());

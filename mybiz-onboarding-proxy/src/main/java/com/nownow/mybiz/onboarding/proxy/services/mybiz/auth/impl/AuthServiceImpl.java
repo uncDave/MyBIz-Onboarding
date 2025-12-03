@@ -6,6 +6,7 @@ import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterIndividualReques
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterMultipleDirectorUserRequest;
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterSoleProprietorRequest;
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.response.AccountTypeResponse;
+import com.nownow.mybiz.onboarding.proxy.dto.request.MileStoneRequest;
 import com.nownow.mybiz.onboarding.proxy.services.mybiz.auth.AuthService;
 import com.nownow.mybiz.onboarding.proxy.utils.ApiClientUtil;
 import com.nownow.mybiz.onboarding.proxy.utils.ApiResponse;
@@ -43,6 +44,12 @@ public class AuthServiceImpl implements AuthService {
     @Value("${onboard-accountTypes.url}")
     private String proxyAccountTypesUrl;
 
+    @Value("${onboard-saveMileStone.url}")
+    private String proxySaveMileStoneUrl;
+
+    @Value("${onboard-getMileStone.url}")
+    private String getMileStoneUrl;
+
 
 
 
@@ -78,19 +85,26 @@ public class AuthServiceImpl implements AuthService {
                     new TypeReference<ApiResponse<?>>() {}
             );
 
+            // ➤ If Service A returns error, forward Service A's error exactly
             if (!response.getStatusCode().is2xxSuccessful()) {
                 log.error("Failed to register individual user: {}", response.getBody());
                 return ResponseEntity.status(response.getStatusCode())
-                        .body(createFailureResponse("Error", "Failed to register individual user"));
+                        .body(response.getBody()); // <-- forward actual error from A
             }
 
-            return ResponseEntity.ok(response.getBody());
+            // ➤ If successful, also forward Service A's success message
+            return ResponseEntity.status(response.getStatusCode())
+                    .body(response.getBody());
+
         } catch (Exception ex) {
             log.error("Exception registering individual user: {}", ex.getMessage(), ex);
+
+            // generic internal error for service B
             return ResponseEntity.internalServerError()
-                    .body(createFailureResponse("Error", "Failed to register individual user"));
+                    .body(createFailureResponse("Error", ex.getMessage()));
         }
     }
+
 
     @Override
     public ResponseEntity<ApiResponse<?>> registerSoleProprietorUser(RegisterSoleProprietorRequest request) {
@@ -153,5 +167,51 @@ public class AuthServiceImpl implements AuthService {
             return ResponseEntity.internalServerError().body(null);
         }
     }
+
+    @Override
+    public ResponseEntity<ApiResponse<?>> saveMileStone(MileStoneRequest request) {
+        try {
+            ResponseEntity<ApiResponse<?>> response = apiClientUtil.postWithoutToken(
+                    proxySaveMileStoneUrl,
+                    request,
+                    new TypeReference<ApiResponse<?>>() {}
+            );
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.error("failed to save user milestone: {}", response.getBody());
+                return ResponseEntity.status(response.getStatusCode())
+                        .body(createFailureResponse("Error", "failed to save user milestone: {}"));
+            }
+
+            return ResponseEntity.ok(response.getBody());
+        } catch (Exception ex) {
+            log.error("failed to save user mile stone: {}", ex.getMessage(), ex);
+            return ResponseEntity.internalServerError()
+                    .body(createFailureResponse("Error", "failed to save user milestone"));
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<?>> getMileStoneByPhoneNumber(String phoneNo) {
+        try {
+            // Replace the placeholder with the actual phone number
+            String urlWithPhone = getMileStoneUrl.replace("{phoneNo}", phoneNo);
+
+            log.info("This is the url : {}", urlWithPhone);
+
+            ResponseEntity<ApiResponse<?>> response = apiClientUtil.getWithoutToken(
+                    urlWithPhone,
+                    new TypeReference<ApiResponse<?>>() {}
+            );
+
+            return ResponseEntity.ok(response.getBody());
+        } catch (Exception ex) {
+            log.error("Failed to get user milestone for phone {}: {}", phoneNo, ex.getMessage(), ex);
+            return ResponseEntity.internalServerError()
+                    .body(createFailureResponse("Error", "Failed to get user milestone"));
+        }
+    }
+
+
 
 }

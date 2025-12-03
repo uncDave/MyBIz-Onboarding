@@ -1,5 +1,6 @@
 package com.nownow.mybiz.onboarding.proxy.dto.request.identityManagementService;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +15,7 @@ public class BVNRequest {
             message = "BVN must be exactly 11 digits"
     )
     private String bvn;
+
 
 
 

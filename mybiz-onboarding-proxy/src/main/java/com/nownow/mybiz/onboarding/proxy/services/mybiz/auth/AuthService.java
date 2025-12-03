@@ -5,6 +5,7 @@ import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterIndividualReques
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterMultipleDirectorUserRequest;
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterSoleProprietorRequest;
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.response.AccountTypeResponse;
+import com.nownow.mybiz.onboarding.proxy.dto.request.MileStoneRequest;
 import com.nownow.mybiz.onboarding.proxy.utils.ApiResponse;
 import org.springframework.http.ResponseEntity;
 
@@ -18,6 +19,8 @@ public interface AuthService {
     ResponseEntity<ApiResponse<?>> registerSoleProprietorUser(RegisterSoleProprietorRequest request);
     ResponseEntity<ApiResponse<?>> registerMultipleDirectorUser(RegisterMultipleDirectorUserRequest request);
     ResponseEntity<List<AccountTypeResponse>> getProxyAccountTypes();
+    ResponseEntity<ApiResponse<?>> saveMileStone(MileStoneRequest request);
+    ResponseEntity<ApiResponse<?>> getMileStoneByPhoneNumber(String phoneNo);
 
 
 

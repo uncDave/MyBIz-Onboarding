@@ -5,6 +5,7 @@ import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterIndividualReques
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterMultipleDirectorUserRequest;
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterSoleProprietorRequest;
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.response.AccountTypeResponse;
+import com.nownow.mybiz.onboarding.proxy.dto.request.MileStoneRequest;
 import com.nownow.mybiz.onboarding.proxy.services.mybiz.auth.AuthService;
 import com.nownow.mybiz.onboarding.proxy.utils.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,22 @@ public class AuthController {
     public ResponseEntity<List<AccountTypeResponse>> getAccountTypesFromProxy() {
         log.info("Fetching account types from proxy");
         return authService.getProxyAccountTypes();
+    }
+
+    @PostMapping("/save-milestone")
+    public ResponseEntity<ApiResponse<?>> saveMilestone(@RequestBody MileStoneRequest request) {
+        log.info("Saving milestone for phoneNo={}, milestone={}",
+                request.getPhoneNo(), request.getMileStone());
+        return authService.saveMileStone(request);
+    }
+
+    /**
+     * Get milestone by phone number
+     */
+    @GetMapping("/get-milestone/{phoneNo}")
+    public ResponseEntity<ApiResponse<?>> getMilestoneByPhoneNo(@PathVariable String phoneNo) {
+        log.info("Fetching milestone for phoneNo={}", phoneNo);
+        return authService.getMileStoneByPhoneNumber(phoneNo);
     }
 
 }
