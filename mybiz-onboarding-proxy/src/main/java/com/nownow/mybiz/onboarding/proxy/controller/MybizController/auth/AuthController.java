@@ -6,8 +6,10 @@ import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterMultipleDirector
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterSoleProprietorRequest;
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.response.AccountTypeResponse;
 import com.nownow.mybiz.onboarding.proxy.dto.request.MileStoneRequest;
+import com.nownow.mybiz.onboarding.proxy.dto.request.phoneNumberExistRequest;
 import com.nownow.mybiz.onboarding.proxy.services.mybiz.auth.AuthService;
 import com.nownow.mybiz.onboarding.proxy.utils.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,14 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
+
+
+
+    @PostMapping("/findByPhone")
+    public ResponseEntity<ApiResponse<?>> login(@RequestBody phoneNumberExistRequest request) {
+        log.info("phone look up for phone: {}", request.getPhoneNo());
+        return authService.phoneExist(request);
+    }
 
 
     @PostMapping("/login")
@@ -69,6 +79,24 @@ public class AuthController {
     public ResponseEntity<ApiResponse<?>> getMilestoneByPhoneNo(@PathVariable String phoneNo) {
         log.info("Fetching milestone for phoneNo={}", phoneNo);
         return authService.getMileStoneByPhoneNumber(phoneNo);
+    }
+
+    /**
+     * Logout endpoint
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<?>> logout(@RequestParam String refreshToken) {
+        log.info("Proxy logout called for token: {}", refreshToken);
+        return authService.logoutUser(refreshToken);
+    }
+
+    /**
+     * Refresh token endpoint
+     */
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiResponse<?>> refreshToken(@RequestParam String refreshToken) {
+        log.info("Proxy refresh token called for token: {}", refreshToken);
+        return authService.refreshToken(refreshToken);
     }
 
 }

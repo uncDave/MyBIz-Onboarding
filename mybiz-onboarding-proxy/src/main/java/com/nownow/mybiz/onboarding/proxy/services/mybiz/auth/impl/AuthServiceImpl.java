@@ -7,6 +7,7 @@ import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterMultipleDirector
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.RegisterSoleProprietorRequest;
 import com.nownow.mybiz.onboarding.proxy.dto.onboarding.response.AccountTypeResponse;
 import com.nownow.mybiz.onboarding.proxy.dto.request.MileStoneRequest;
+import com.nownow.mybiz.onboarding.proxy.dto.request.phoneNumberExistRequest;
 import com.nownow.mybiz.onboarding.proxy.services.mybiz.auth.AuthService;
 import com.nownow.mybiz.onboarding.proxy.utils.ApiClientUtil;
 import com.nownow.mybiz.onboarding.proxy.utils.ApiResponse;
@@ -41,6 +42,16 @@ public class AuthServiceImpl implements AuthService {
     @Value("${onboard-login.url}")
     private String loginUrl;
 
+    @Value("${onboard-phone-lookup.url}")
+    private String phoneLookUpUrl;
+
+    @Value("${onboard-logout.url}")
+    private String logoutUrl;
+
+    @Value("${onboard-refresh.url}")
+    private String onboardRefreshUrl;
+
+
     @Value("${onboard-accountTypes.url}")
     private String proxyAccountTypesUrl;
 
@@ -51,6 +62,34 @@ public class AuthServiceImpl implements AuthService {
     private String getMileStoneUrl;
 
 
+
+
+
+    @Override
+    public ResponseEntity<ApiResponse<?>> phoneExist(phoneNumberExistRequest request) {
+
+        ResponseEntity<ApiResponse<?>> response = apiClientUtil.postWithoutToken(
+                phoneLookUpUrl,
+                request,
+                new TypeReference<ApiResponse<?>>() {}
+        );
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            log.error(
+                    "Failed phone lookup attempt {}: {}",
+                    request.getPhoneNo(),
+                    response.getBody()
+            );
+
+            return ResponseEntity
+                    .status(response.getStatusCode())
+                    .body(response.getBody());
+        }
+
+        return ResponseEntity
+                .status(response.getStatusCode())
+                .body(response.getBody());
+    }
 
 
     @Override
@@ -65,16 +104,79 @@ public class AuthServiceImpl implements AuthService {
             if (!response.getStatusCode().is2xxSuccessful()) {
                 log.error("Failed login attempt for username {}: {}", request.getPhone(), response.getBody());
                 return ResponseEntity.status(response.getStatusCode())
-                        .body(createFailureResponse("Error", "Login failed"));
+                        .body(response.getBody());
+
             }
 
-            return ResponseEntity.ok(response.getBody());
+            return ResponseEntity.status(response.getStatusCode())
+                    .body(response.getBody());
+
         } catch (Exception ex) {
             log.error("Exception during login for username {}: {}", request.getPhone(), ex.getMessage(), ex);
             return ResponseEntity.internalServerError()
                     .body(createFailureResponse("Error", "Login failed"));
         }
     }
+
+    @Override
+    public ResponseEntity<ApiResponse<?>> logoutUser(String refreshToken) {
+        try {
+
+            String urlWithToken = logoutUrl + "?refreshToken=" + refreshToken;
+
+            log.info("Calling logout endpoint: {}", urlWithToken);
+
+
+            ResponseEntity<ApiResponse<?>> response =
+                    apiClientUtil.postWithoutBody(urlWithToken, new TypeReference<ApiResponse<?>>() {});
+
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.error("Failed logout attempt for token {}: {}", refreshToken, response.getBody());
+                return ResponseEntity.status(response.getStatusCode())
+                        .body(response.getBody());
+            }
+            return ResponseEntity.status(response.getStatusCode())
+                    .body(response.getBody());
+
+        } catch (Exception ex) {
+            log.error("Exception during logout for token {}: {}", refreshToken, ex.getMessage(), ex);
+            return ResponseEntity.internalServerError()
+                    .body(createFailureResponse("Error", "Logout failed"));
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<?>> refreshToken(String refreshToken) {
+        try {
+
+            String urlWithToken = onboardRefreshUrl + "?refreshToken=" + refreshToken;
+
+            log.info("Calling refresh token endpoint: {}", urlWithToken);
+
+            ResponseEntity<ApiResponse<?>> response =
+                    apiClientUtil.postWithoutBody(urlWithToken, new TypeReference<ApiResponse<?>>() {});
+
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.error("Failed to refresh token {}: {}", refreshToken, response.getBody());
+                return ResponseEntity.status(response.getStatusCode())
+                        .body(response.getBody());
+
+            }
+
+            return ResponseEntity.status(response.getStatusCode())
+                    .body(response.getBody());
+
+
+        } catch (Exception ex) {
+            log.error("Exception refreshing token {}: {}", refreshToken, ex.getMessage(), ex);
+            return ResponseEntity.internalServerError()
+                    .body(createFailureResponse("Error", "Failed to refresh token"));
+        }
+    }
+
+
 
     @Override
     public ResponseEntity<ApiResponse<?>> registerIndividualUser(RegisterIndividualRequest request) {
@@ -85,21 +187,24 @@ public class AuthServiceImpl implements AuthService {
                     new TypeReference<ApiResponse<?>>() {}
             );
 
-            // ➤ If Service A returns error, forward Service A's error exactly
+
             if (!response.getStatusCode().is2xxSuccessful()) {
                 log.error("Failed to register individual user: {}", response.getBody());
                 return ResponseEntity.status(response.getStatusCode())
-                        .body(response.getBody()); // <-- forward actual error from A
+                        .body(response.getBody());
             }
 
-            // ➤ If successful, also forward Service A's success message
+
+            log.info("user registered successfully........");
+
+
             return ResponseEntity.status(response.getStatusCode())
                     .body(response.getBody());
 
         } catch (Exception ex) {
             log.error("Exception registering individual user: {}", ex.getMessage(), ex);
 
-            // generic internal error for service B
+
             return ResponseEntity.internalServerError()
                     .body(createFailureResponse("Error", ex.getMessage()));
         }
@@ -118,7 +223,9 @@ public class AuthServiceImpl implements AuthService {
             if (!response.getStatusCode().is2xxSuccessful()) {
                 log.error("Failed to register sole proprietor user: {}", response.getBody());
                 return ResponseEntity.status(response.getStatusCode())
-                        .body(createFailureResponse("Error", "Failed to register sole proprietor user"));
+                        .body(response.getBody());
+//                return ResponseEntity.status(response.getStatusCode())
+//                        .body(createFailureResponse("Error", "Failed to register sole proprietor user"));
             }
 
             return ResponseEntity.ok(response.getBody());
@@ -141,7 +248,9 @@ public class AuthServiceImpl implements AuthService {
             if (!response.getStatusCode().is2xxSuccessful()) {
                 log.error("Failed to register multiple director user: {}", response.getBody());
                 return ResponseEntity.status(response.getStatusCode())
-                        .body(createFailureResponse("Error", "Failed to register multiple director user"));
+                        .body(response.getBody());
+//                return ResponseEntity.status(response.getStatusCode())
+//                        .body(createFailureResponse("Error", "Failed to register multiple director user"));
             }
 
             return ResponseEntity.ok(response.getBody());

@@ -14,6 +14,9 @@ public class MileStoneRequest {
     @NotBlank(message = "phoneNo is required")
     private String phoneNo;
 
+    @NotBlank(message = "role is required")
+    private String userRole;
+
     @NotBlank(message = "mileStone is required")
     private String mileStone;
 

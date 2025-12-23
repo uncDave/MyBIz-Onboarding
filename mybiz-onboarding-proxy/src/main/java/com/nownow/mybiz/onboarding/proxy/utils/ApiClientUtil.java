@@ -73,15 +73,13 @@ public class ApiClientUtil {
         }
     }
 
-
-    public <T> ResponseEntity<T> postWithoutToken(String url, Object requestBody, TypeReference<T> typeRef) {
-
+    public <T> ResponseEntity<T> postWithoutBody(String url, TypeReference<T> typeRef) {
         WebClient webClient = WebClient.builder().build();
 
         return webClient.post()
                 .uri(url)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .bodyValue(requestBody)
+                .bodyValue("{}")   // <-- empty JSON instead of null
                 .exchangeToMono(response ->
                         response.bodyToMono(String.class)
                                 .map(body -> {
@@ -94,6 +92,64 @@ public class ApiClientUtil {
                                 })
                 )
                 .block();
+    }
+
+
+
+    public <T> ResponseEntity<T> postWithoutToken(String url, Object requestBody, TypeReference<T> typeRef) {
+        WebClient webClient = WebClient.builder().build();
+
+        try {
+            return webClient.post()
+                    .uri(url)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .bodyValue(requestBody)
+                    .exchangeToMono(response -> {
+                        int statusCode = response.statusCode().value();
+
+                        return response.bodyToMono(String.class)
+                                .map(body -> {
+                                    log.info("=== Service B Response ===");
+                                    log.info("Status: {}", statusCode);
+                                    log.info("Body: {}", body);
+                                    log.info("========================");
+
+                                    try {
+                                        T parsed = objectMapper.readValue(body, typeRef);
+                                        return ResponseEntity.status(statusCode).body(parsed);
+
+                                    } catch (Exception ex) {
+                                        log.error("Failed to parse response from Service B", ex);
+                                        log.error("Raw response body: {}", body);
+
+                                        // Return error response with actual status code from Service B
+                                        ApiResponse<?> errorResponse = ResponseUtils.createFailureResponse(
+                                                "Parsing Error",
+                                                "Service B returned: " + body.substring(0, Math.min(200, body.length()))
+                                        );
+
+                                        @SuppressWarnings("unchecked")
+                                        T casted = (T) errorResponse;
+
+                                        return ResponseEntity.status(statusCode).body(casted);
+                                    }
+                                });
+                    })
+                    .block();
+
+        } catch (Exception ex) {
+            log.error("WebClient error calling Service B", ex);
+
+            ApiResponse<?> errorResponse = ResponseUtils.createFailureResponse(
+                    "Service Error",
+                    "Failed to communicate with Service B: " + ex.getMessage()
+            );
+
+            @SuppressWarnings("unchecked")
+            T casted = (T) errorResponse;
+
+            return ResponseEntity.status(500).body(casted);
+        }
     }
 
     public <T> ResponseEntity<T> getWithoutToken(String url, TypeReference<T> typeRef) {
@@ -148,7 +204,7 @@ public class ApiClientUtil {
         try {
             WebClient webClient = WebClient.builder().build();
 
-            // Create the multipart body map
+
             org.springframework.util.LinkedMultiValueMap<String, Object> bodyMap = new org.springframework.util.LinkedMultiValueMap<>();
             bodyMap.add("file", file.getResource());
 

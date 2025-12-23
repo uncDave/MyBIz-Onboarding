@@ -160,13 +160,21 @@ public class IdentityManagementImpl implements IdentityManagementService {
                     new TypeReference<ApiResponse<Object>>() {}
             );
 
-            return ResponseEntity.ok(
-                    ApiResponse.builder()
-                            .status(true)
-                            .message("File uploaded successfully")
-                            .data(response)
-                            .build()
-            );
+            if (response.isStatus()) {
+                return ResponseEntity.ok(response);
+            }
+
+            ApiResponse<?> genericError = ApiResponse.builder()
+                    .status(false)
+                    .message("File upload failed. Please try again later.")
+                    .build();
+
+            return ResponseEntity
+                    .status(400)   // since no HTTP status available, use 400
+                    .body(genericError);
+
+
+
 
         } catch (Exception e) {
             log.error("File upload failed", e);
