@@ -29,9 +29,15 @@ public class AuthController {
 
 
     @PostMapping("/findByPhone")
-    public ResponseEntity<ApiResponse<?>> login(@RequestBody phoneNumberExistRequest request) {
+    public ResponseEntity<ApiResponse<?>> findByPhone(@RequestBody phoneNumberExistRequest request) {
         log.info("phone look up for phone: {}", request.getPhoneNo());
         return authService.phoneExist(request);
+    }
+
+    @PostMapping("/delete")
+    public ResponseEntity<ApiResponse<?>> deleteUser(@RequestBody phoneNumberExistRequest request) {
+
+        return authService.deleteUser(request);
     }
 
 
