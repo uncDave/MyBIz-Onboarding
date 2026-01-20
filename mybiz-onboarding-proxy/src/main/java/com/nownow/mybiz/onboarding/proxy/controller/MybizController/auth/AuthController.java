@@ -40,6 +40,11 @@ public class AuthController {
         return authService.deleteUser(request);
     }
 
+    @PostMapping("/delete-milestone")
+    public ResponseEntity<ApiResponse<?>> deleteMilestone(@RequestBody phoneNumberExistRequest request) {
+        return authService.deleteMileStone(request);
+    }
+
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequest request) {

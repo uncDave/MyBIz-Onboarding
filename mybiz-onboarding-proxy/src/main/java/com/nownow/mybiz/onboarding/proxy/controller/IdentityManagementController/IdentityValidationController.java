@@ -1,6 +1,7 @@
 package com.nownow.mybiz.onboarding.proxy.controller.IdentityManagementController;
 
 import com.nownow.mybiz.onboarding.proxy.dto.request.identityManagementService.BVNRequest;
+import com.nownow.mybiz.onboarding.proxy.dto.request.identityManagementService.CACRequest;
 import com.nownow.mybiz.onboarding.proxy.dto.request.identityManagementService.NINRequest;
 import com.nownow.mybiz.onboarding.proxy.dto.request.identityManagementService.TINRequest;
 import com.nownow.mybiz.onboarding.proxy.services.identityManagement.IdentityManagementService;
@@ -38,6 +39,13 @@ public class IdentityValidationController {
     public ResponseEntity<ApiResponse<?>> verifyTIN(@Valid @RequestBody TINRequest request) {
         log.info("TIN verification controller called: {}", request);
         return identityManagementService.verifyTIN(request);
+    }
+
+
+    @PostMapping("/cac/verify")
+    public ResponseEntity<ApiResponse<?>> verifyCAC(@Valid @RequestBody CACRequest request) {
+        log.info("CAC verification controller called: {}", request);
+        return identityManagementService.verifyCAC(request);
     }
 
     @PostMapping("/upload")

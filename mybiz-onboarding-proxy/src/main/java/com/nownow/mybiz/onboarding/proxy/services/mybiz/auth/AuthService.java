@@ -17,6 +17,7 @@ public interface AuthService {
 
     ResponseEntity<ApiResponse<?>> phoneExist(phoneNumberExistRequest request);
     ResponseEntity<ApiResponse<?>> deleteUser(phoneNumberExistRequest request);
+    ResponseEntity<ApiResponse<?>> deleteMileStone(phoneNumberExistRequest request);
 
     ResponseEntity<ApiResponse<?>> loginUser(LoginRequest request);
     ResponseEntity<ApiResponse<?>> logoutUser(String refreshToken);

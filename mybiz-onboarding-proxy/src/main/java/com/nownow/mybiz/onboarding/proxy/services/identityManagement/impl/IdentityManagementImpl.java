@@ -2,6 +2,7 @@ package com.nownow.mybiz.onboarding.proxy.services.identityManagement.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.nownow.mybiz.onboarding.proxy.dto.request.identityManagementService.BVNRequest;
+import com.nownow.mybiz.onboarding.proxy.dto.request.identityManagementService.CACRequest;
 import com.nownow.mybiz.onboarding.proxy.dto.request.identityManagementService.NINRequest;
 import com.nownow.mybiz.onboarding.proxy.dto.request.identityManagementService.TINRequest;
 import com.nownow.mybiz.onboarding.proxy.services.identityManagement.IdentityManagementService;
@@ -30,6 +31,9 @@ public class IdentityManagementImpl implements IdentityManagementService {
 
     @Value("${verify-nin.service.url}")
     private String verifyNinServiceUrl;
+
+    @Value("${verify-cac.service.url}")
+    private String verifyCacServiceUrl;
 
     @Value("${upload-file.service.url}")
     private String uploadFileServiceUrl;
@@ -140,6 +144,50 @@ public class IdentityManagementImpl implements IdentityManagementService {
                     );
         }
     }
+
+    @Override
+    public ResponseEntity<ApiResponse<?>> verifyCAC(CACRequest request) {
+        try {
+            String url = verifyCacServiceUrl;
+
+            log.info("CAC verification request: {}", request);
+
+            ResponseEntity<ApiResponse<Object>> response = apiClientUtil.post(
+                    url,
+                    request,
+                    apiKey,
+                    new TypeReference<ApiResponse<Object>>() {}
+            );
+
+            // 🔴 IMPORTANT GUARD
+            if (response == null) {
+                log.error("CAC verification failed - null response from downstream");
+
+                return ResponseEntity.status(502).body(
+                        ApiResponse.builder()
+                                .status(false)
+                                .message("CAC verification service unavailable")
+                                .error("Downstream service returned no response")
+                                .build()
+                );
+            }
+
+            return ResponseEntity.status(response.getStatusCode())
+                    .body(response.getBody());
+
+        } catch (Exception e) {
+            log.error("CAC verification failed", e);
+
+            return ResponseEntity.internalServerError()
+                    .body(ApiResponse.builder()
+                            .status(false)
+                            .message("Verification failed")
+                            .error(e.getMessage())
+                            .build());
+        }
+    }
+
+
 
     @Override
     public ResponseEntity<ApiResponse<?>> uploadFile(MultipartFile file) {

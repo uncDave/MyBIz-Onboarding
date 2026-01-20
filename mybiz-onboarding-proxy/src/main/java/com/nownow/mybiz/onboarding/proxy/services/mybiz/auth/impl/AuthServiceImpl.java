@@ -65,6 +65,9 @@ public class AuthServiceImpl implements AuthService {
     @Value("${onboard-delete-user.url}")
     private String deleteUserUrl;
 
+    @Value("${onboard-delete-milestone.url}")
+    private String deleteMilestoneUrl;
+
 
 
 
@@ -111,6 +114,37 @@ public class AuthServiceImpl implements AuthService {
             if (!response.getStatusCode().is2xxSuccessful()) {
                 log.error(
                         "Failed to delete user {}: {}",
+                        request.getPhoneNo(),
+                        response.getBody()
+                );
+
+                return ResponseEntity
+                        .status(response.getStatusCode())
+                        .body(response.getBody());
+            }
+
+            return ResponseEntity
+                    .status(response.getStatusCode())
+                    .body(response.getBody());
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<?>> deleteMileStone(phoneNumberExistRequest request) {
+        try {
+            log.info("start delete of milestone....");
+            ResponseEntity<ApiResponse<?>> response = apiClientUtil.postWithoutToken(
+                    deleteMilestoneUrl,
+                    request,
+                    new TypeReference<ApiResponse<?>>() {}
+            );
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.error(
+                        "Failed to delete milestone {}: {}",
                         request.getPhoneNo(),
                         response.getBody()
                 );
